@@ -4,15 +4,16 @@ if [ "$1" != "" ]; then
 	BASEFOLDER=$1
 else
 	BASEFOLDER=subfolder
+fi
 
-FOLDER=$BASEFOLDER/OpenLib
+FOLDER=${BASEFOLDER}/OpenLib
 
-mkdir -p $FOLDER
-cd $FOLDER
+mkdir -p ${FOLDER}
+cd ${FOLDER}
 git clone https://ceres-solver.googlesource.com/ceres-solver
 
 # CMake
- sudo apt-get install -y cmake
+sudo apt-get install -y cmake
 # google-glog + gflags
 sudo apt-get install -y libgoogle-glog-dev
 # BLAS & LAPACK
