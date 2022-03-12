@@ -3,8 +3,7 @@
 if [ "$1" != "" ]; then
 	BASEFOLDER=$1
 else
-	BASEFOLDER=ceres-solver
-fi
+	BASEFOLDER=subfolder
 
 FOLDER=$BASEFOLDER/OpenLib
 
