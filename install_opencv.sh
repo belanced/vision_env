@@ -1,25 +1,50 @@
 #!/bin/bash
 
-currentFolder=$(pwd)
-read -p "OpenCV version(default 3.4.1): " version
-if [ -z "${version}" ]; then
-	version=3.4.1
+DEFAULT_CV_VERSION=4.5.2
+CURRENTFOLDER=$(pwd)
+read -p "OpenCV version(default ${DEFAULT_CV_VERSION}): " VERSION_INPUT
+
+if [ -z "$VERSION_INPUT" ]
+then  # default version
+    VERSION=${DEFAULT_CV_VERSION}
+else
+	VERSION=${VERSION_INPUT}
 fi
 
-echo "Install OpenCV version=${version}"
+echo "* Install OpenCV version: ${VERSION}"
 
-baseFolder=subfolder
+BASEFOLDER=subfolder
 
-folder=$currentFolder/$baseFolder/OpenCV
+WS_DIR=${CURRENTFOLDER}/${BASEFOLDER}/OpenCV
 
-rm -rf $folder
-mkdir -p $folder
-cd $folder
+# prepare system environment
+ARCH=$(uname -i) && echo "* Detected architecture: ${ARCH}"
+CUDA_PATH=/usr/local/cuda
+CUDA_ARCH_PATH=$CUDA_PATH/targets/${ARCH}-linux
+CUDA_BIN_PATH=$CUDA_PATH/bin
+CUDA_LIB_PATH=$CUDA_ARCH_PATH/lib
+CUDA_INC_PATH=$CUDA_ARCH_PATH/include
+PATH=$CUDA_BIN_PATH:$PATH
 
+export CUDA_PATH CUDA_BIN_PATH CUDA_ARCH_PATH CUDA_LIB_PATH
+export CUDA_INC_PATH PATH
+
+# make directories and clone the sources
+rm -rf ${WS_DIR}
+mkdir -p ${WS_DIR}
+cd ${WS_DIR}
+
+git clone https://github.com/opencv/opencv.git
+git clone https://github.com/opencv/opencv_contrib.git
+cd ${WS_DIR}/opencv && git checkout ${VERSION}
+cd ${WS_DIR}/opencv_contrib && git checkout ${VERSION}
+
+# clear aptitude opencv installation
 sudo apt purge libopencv*
 sudo rm -rf /usr/local/opencv4/
 
-sudo apt update && sudo apt upgrade
+# install dependencies
+sudo apt update && sudo apt upgrade -y
 sudo apt install -y ubuntu-restricted-extras build-essential cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
 sudo apt install -y libjpeg-dev libpng-dev libtiff-dev
 sudo apt install -y libavcodec-dev libavformat-dev libswscale-dev libavresample-dev
@@ -38,35 +63,8 @@ sudo -H pip3 install numpy
 sudo apt-get install -y libtbb-dev
 sudo apt-get install -y libatlas-base-dev gfortran
 
-cd $folder
-git clone https://github.com/opencv/opencv.git
-cd $folder/opencv
-git checkout $version
-
-cd $folder
-git clone https://github.com/opencv/opencv_contrib.git
-cd $folder/opencv_contrib
-git checkout $version
-
-mkdir -p $folder/opencv/build
-cd $folder/opencv/build
-
-# location of cuda installation     
-CUDA_PATH=/usr/local/cuda-10.2 
-
-# location of lib & include paths  (this is what has changed in newer cuda setups)
-CUDA_ARCH_PATH=$CUDA_PATH/targets/aarch64-linux
-
-# location of nvcc
-CUDA_BIN_PATH=$CUDA_PATH/bin
-
-CUDA_LIB_PATH=$CUDA_ARCH_PATH/lib
-CUDA_INC_PATH=$CUDA_ARCH_PATH/include
-
-PATH=$CUDA_BIN_PATH:$PATH
-
-export CUDA_PATH CUDA_BIN_PATH CUDA_ARCH_PATH CUDA_LIB_PATH
-export CUDA_INC_PATH PATH
+mkdir -p ${WS_DIR}/opencv/build
+cd ${WS_DIR}/opencv/build
 
 cmake 	-D CMAKE_BUILD_TYPE=Release \
 	-D CMAKE_INSTALL_PREFIX=/usr/local \
@@ -86,4 +84,4 @@ cmake 	-D CMAKE_BUILD_TYPE=Release \
 	-D WITH_V4L=ON \..
 
 make -j$(nproc)
-sudo make install
+#sudo make install

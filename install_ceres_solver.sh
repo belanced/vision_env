@@ -33,6 +33,6 @@ sudo apt-get install -y libsuitesparse-dev
 
 # BUILD
 mkdir ceres-bin && cd ceres-bin
-cmake ../ceres-solver
+cmake ../ceres-solver -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF
 make -j$(nproc)
 sudo make install
